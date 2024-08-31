@@ -4,7 +4,9 @@ import GoogleImage from "../assets/Gmail.png";
 import FacebookImage from "../assets/Facebook.png";
 import { Link } from "react-router-dom";
 import { FaEye, FaEyeSlash, FaFacebook } from "react-icons/fa";
-import Signup from "./Signup";
+import { useNavigate } from "react-router-dom";
+import { ColorRing } from "react-loader-spinner";
+
 import {
   getAuth,
   signInWithEmailAndPassword,
@@ -14,17 +16,18 @@ import {
 } from "firebase/auth";
 import { useDispatch } from "react-redux";
 import { loginuserinfo } from "../Slices/UserSlice";
+import { getDatabase, ref, set } from "firebase/database";
 
 const Signin = () => {
+  const db = getDatabase();
   let dispatch = useDispatch();
+  let navigate = useNavigate();
   const auth = getAuth();
   const provider = new GoogleAuthProvider();
   const fprovider = new FacebookAuthProvider();
   let [email, setEmail] = useState("");
-
   let [password, setPassword] = useState("");
   let [emailerror, setEmailerror] = useState("");
-
   let [passworderror, setPassworderror] = useState("");
   let [passwordshow, setPasswordshow] = useState(false);
 
@@ -47,29 +50,43 @@ const Signin = () => {
       setPassworderror("Password is required");
     }
     if (email && password) {
-      let user = {
-        name: "MERN",
-      };
-      localStorage.setItem("user", JSON.stringify(user));
-      // signInWithEmailAndPassword(auth, email, password)
-      //   .then((userCredential) => {
-      //     const user = userCredential.user;
-      //     dispatch(loginuserinfo(user));
-      //   })
-      //   .catch((error) => {
-      //     const errorCode = error.code;
-      //     if (error.code.include("auth/invalid-credential")) {
-      //       setEmailerror("Invalid-Credential");
-      //     }
-      //
-      // });
+ 
+      signInWithEmailAndPassword(auth, email, password)
+        .then((userCredential) => {
+          const user = userCredential.user;
+          dispatch(loginuserinfo(user))
+          localStorage.setItem("user",JSON.stringify(user))
+
+          navigate('/')
+    
+        
+        })
+        .catch((error) => {
+          const errorCode = error.code;
+          console.log(errorCode)
+          if (error.code.include("auth/invalid-credential")) {
+            setEmailerror("Invalid-Credential");
+          }
+      
+      }); 
     }
   };
 
   let handleGoogleLogin = () => {
     signInWithPopup(auth, provider)
-      .then((result) => {
-        console.log(result);
+      .then((userCredential) => {
+        set(ref(db, "users/" + userCredential.user.uid), {
+          name: userCredential.user.displayName,
+          email: userCredential.user.email,
+          image: userCredential.user.photoURL,
+          date: `${new Date().getFullYear()}-${
+            new Date().getMonth() + 1
+          }-${new Date().getDate()}-${new Date().getHours()}-${new Date().getMinutes()}-${new Date().getSeconds()}`,
+        }).then;
+        setTimeout(() => {
+         setLoader(false);
+          navigate("/signin");
+        }, 1000);
       })
       .catch((error) => {
         console.log(error);

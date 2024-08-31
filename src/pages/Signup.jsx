@@ -63,6 +63,9 @@ const Signup = () => {
                   name: userCredential.user.displayName,
                   email: userCredential.user.email,
                   image: "/public/alim1.png",
+                  date: `${new Date().getFullYear()}-${
+                    new Date().getMonth() + 1
+                  }-${new Date().getDate()}-${new Date().getHours()}-${new Date().getMinutes()}-${new Date().getSeconds()}`,
                 }).then;
                 setTimeout(() => {
                   setLoader(false);
@@ -81,7 +84,7 @@ const Signup = () => {
               setEmailerror("Eamil alreary in use");
             }
             console.log(error);
-          }, 2000);
+          }, 1000);
         });
     }
   };
